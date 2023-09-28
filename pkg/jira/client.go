@@ -216,7 +216,8 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body []by
 
 	defer func() {
 		if c.debug {
-			dump(req, res)
+			// todo: res is always nil
+			dump(req, res, body)
 		}
 	}()
 
@@ -232,15 +233,20 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body []by
 
 	httpClient := &http.Client{Transport: c.transport}
 
-	return httpClient.Do(req.WithContext(ctx))
+	res, err = httpClient.Do(req.WithContext(ctx))
+	return res, err
 }
 
-func dump(req *http.Request, res *http.Response) {
-	reqDump, _ := httputil.DumpRequest(req, true)
+func dump(req *http.Request, res *http.Response, body []byte) {
+	reqDump, _ := httputil.DumpRequest(req, false)
 	prettyPrintDump("Request Details", reqDump)
 
+	if body != nil {
+		prettyPrintDump("Request Body", body)
+	}
+
 	if res != nil {
-		respDump, _ := httputil.DumpResponse(res, false)
+		respDump, _ := httputil.DumpResponse(res, true)
 		prettyPrintDump("Response Details", respDump)
 	}
 }
