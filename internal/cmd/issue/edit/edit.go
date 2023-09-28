@@ -143,7 +143,9 @@ func edit(cmd *cobra.Command, args []string) {
 		}
 
 		var parent string
-		if issue.Fields.Parent != nil {
+		if params.parent != "" {
+			parent = params.parent
+		} else if issue.Fields.Parent != nil {
 			parent = issue.Fields.Parent.Key
 		}
 
@@ -157,6 +159,7 @@ func edit(cmd *cobra.Command, args []string) {
 			FixVersions:     fixVersions,
 			AffectsVersions: affectsVersions,
 			CustomFields:    params.customFields,
+			EpicField:       viper.GetString("epic.link"),
 		}
 		if configuredCustomFields, err := cmdcommon.GetConfiguredCustomFields(); err == nil {
 			cmdcommon.ValidateCustomFields(edr.CustomFields, configuredCustomFields)
@@ -301,6 +304,7 @@ func (ec *editCmd) askQuestions(issue *jira.Issue, originalBody string) error {
 
 type editParams struct {
 	issueKey        string
+	parent          string
 	summary         string
 	body            string
 	priority        string
@@ -315,6 +319,9 @@ type editParams struct {
 }
 
 func parseArgsAndFlags(flags query.FlagParser, args []string, project string) *editParams {
+	parent, err := flags.GetString("parent")
+	cmdutil.ExitIfError(err)
+
 	summary, err := flags.GetString("summary")
 	cmdutil.ExitIfError(err)
 
@@ -350,6 +357,7 @@ func parseArgsAndFlags(flags query.FlagParser, args []string, project string) *e
 
 	return &editParams{
 		issueKey:        cmdutil.GetJiraIssueKey(project, args[0]),
+		parent:          parent,
 		summary:         summary,
 		body:            body,
 		priority:        priority,
@@ -430,6 +438,7 @@ func setFlags(cmd *cobra.Command) {
 
 	cmd.Flags().SortFlags = false
 
+	cmd.Flags().StringP("parent", "P", "", "Edit parent issue key (can be used to attach epic to an issue)")
 	cmd.Flags().StringP("summary", "s", "", "Edit summary or title")
 	cmd.Flags().StringP("body", "b", "", "Edit description")
 	cmd.Flags().StringP("priority", "y", "", "Edit priority")

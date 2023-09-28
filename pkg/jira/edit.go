@@ -28,6 +28,9 @@ type EditRequest struct {
 	Components      []string
 	FixVersions     []string
 	AffectsVersions []string
+	// EpicField is the dynamic epic field name
+	// that changes per jira installation.
+	EpicField string
 	// CustomFields holds all custom fields passed
 	// while editing the issue.
 	CustomFields map[string]string
@@ -108,7 +111,8 @@ type editFields struct {
 			Name string `json:"name,omitempty"`
 		} `json:"remove,omitempty"`
 	} `json:"versions,omitempty"`
-
+	EpicLink     string `json:"epic,omitempty"`
+	epicField    string
 	customFields customField
 }
 
@@ -144,6 +148,13 @@ func (cfm *editFieldsMarshaler) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	dm := temp.(map[string]interface{})
+
+	if epic, ok := dm["epic"]; ok {
+		if cfm.M.epicField != "" {
+			dm[cfm.M.epicField] = []any{map[string]any{"set": epic}}
+		}
+		delete(dm, "epic")
+	}
 
 	for key, val := range cfm.M.customFields {
 		dm[key] = val
@@ -181,6 +192,7 @@ func getRequestDataForEdit(req *EditRequest) *editRequest {
 		}{{Set: struct {
 			Name string `json:"name,omitempty"`
 		}{Name: req.Priority}}},
+		epicField: req.EpicField,
 	}}
 
 	if len(req.Labels) > 0 {
@@ -341,6 +353,7 @@ func getRequestDataForEdit(req *EditRequest) *editRequest {
 			fields.Parent.Set = AssigneeNone
 		} else {
 			fields.Parent.Key = req.ParentIssueKey
+			update.M.EpicLink = req.ParentIssueKey
 		}
 	}
 
