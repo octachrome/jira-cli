@@ -51,8 +51,14 @@ func NewCmdCreate() *cobra.Command {
 		Short:   "Create an issue in a project",
 		Long:    helpText,
 		Example: examples,
-		Run:     create,
+		Run: func(cmd *cobra.Command, _ []string) {
+			DoCreate(cmd, nil)
+		},
 	}
+}
+
+type IssueKeyConsumer interface {
+	Consume(issueKey string)
 }
 
 // SetFlags sets flags supported by create command.
@@ -60,7 +66,7 @@ func SetFlags(cmd *cobra.Command) {
 	cmdcommon.SetCreateFlags(cmd, "Issue")
 }
 
-func create(cmd *cobra.Command, _ []string) {
+func DoCreate(cmd *cobra.Command, issueKeyConsumer IssueKeyConsumer) {
 	server := viper.GetString("server")
 	project := viper.GetString("project.key")
 	projectType := viper.GetString("project.type")
@@ -134,6 +140,10 @@ func create(cmd *cobra.Command, _ []string) {
 
 	cmdutil.ExitIfError(err)
 	cmdutil.Success("Issue created\n%s", cmdutil.GenerateServerBrowseURL(server, key))
+
+	if issueKeyConsumer != nil {
+		issueKeyConsumer.Consume(key)
+	}
 
 	if web, _ := cmd.Flags().GetBool("web"); web {
 		err := cmdutil.Navigate(server, key)
