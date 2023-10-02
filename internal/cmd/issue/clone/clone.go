@@ -10,6 +10,7 @@ import (
 
 	"github.com/ankitpokhrel/jira-cli/api"
 	"github.com/ankitpokhrel/jira-cli/internal/cmdutil"
+	"github.com/ankitpokhrel/jira-cli/internal/cmdcommon"
 	"github.com/ankitpokhrel/jira-cli/internal/query"
 	"github.com/ankitpokhrel/jira-cli/pkg/adf"
 	"github.com/ankitpokhrel/jira-cli/pkg/jira"
@@ -37,7 +38,9 @@ func NewCmdClone() *cobra.Command {
 			"help:args": "ISSUE-KEY\tKey of the issue to clone, eg: ISSUE-1",
 		},
 		Args: cobra.MinimumNArgs(1),
-		Run:  clone,
+		Run: func(cmd *cobra.Command, args []string) {
+			DoClone(cmd, args, nil)
+		},
 	}
 
 	setFlags(&cmd)
@@ -45,7 +48,7 @@ func NewCmdClone() *cobra.Command {
 	return &cmd
 }
 
-func clone(cmd *cobra.Command, args []string) {
+func DoClone(cmd *cobra.Command, args []string, issueKeyConsumer cmdcommon.IssueKeyConsumer) {
 	server := viper.GetString("server")
 	project := viper.GetString("project.key")
 	projectType := viper.GetString("project.type")

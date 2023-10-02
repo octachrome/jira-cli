@@ -57,16 +57,12 @@ func NewCmdCreate() *cobra.Command {
 	}
 }
 
-type IssueKeyConsumer interface {
-	Consume(issueKey string)
-}
-
 // SetFlags sets flags supported by create command.
 func SetFlags(cmd *cobra.Command) {
 	cmdcommon.SetCreateFlags(cmd, "Issue")
 }
 
-func DoCreate(cmd *cobra.Command, issueKeyConsumer IssueKeyConsumer) {
+func DoCreate(cmd *cobra.Command, issueKeyConsumer cmdcommon.IssueKeyConsumer) {
 	server := viper.GetString("server")
 	project := viper.GetString("project.key")
 	projectType := viper.GetString("project.type")

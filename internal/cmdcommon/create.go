@@ -267,3 +267,7 @@ Invalid custom fields used in the command: %s`,
 		)
 	}
 }
+
+type IssueKeyConsumer interface {
+	Consume(issueKey string)
+}

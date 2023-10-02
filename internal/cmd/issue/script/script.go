@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/ankitpokhrel/jira-cli/api"
+	"github.com/ankitpokhrel/jira-cli/internal/cmd/issue/clone"
 	"github.com/ankitpokhrel/jira-cli/internal/cmd/issue/create"
 	"github.com/ankitpokhrel/jira-cli/internal/cmdcommon"
 	"github.com/ankitpokhrel/jira-cli/internal/cmdutil"
@@ -231,6 +232,10 @@ func runScript(cmd *cobra.Command, filename string, args []string) error {
 			subCmd.Run = func(c *cobra.Command, _ []string) {
 				create.DoCreate(c, &consumer)
 			}
+		} else if name == "clone" {
+			subCmd.Run = func(c *cobra.Command, args []string) {
+				clone.DoClone(c, args, &consumer)
+			}
 		}
 		noInput, _ := cmd.Flags().GetBool("no-input")
 		if noInput && subCmd.Flags().Lookup("no-input") != nil {
@@ -294,7 +299,7 @@ func runScript(cmd *cobra.Command, filename string, args []string) error {
 		if err != nil {
 			return err
 		}
-		if name == "create" {
+		if name == "create" || name == "clone" {
 			script.Define["issue_key"] = consumer.issueKey
 		}
 	}
